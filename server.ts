@@ -578,9 +578,18 @@ io.on("connection", (socket: Socket) => {
       usn,
     });
 
-    // Broadcast updated leaderboard
+    // Broadcast updated leaderboard and participant roster
     const allResults = await getParticipantsForQuiz(quizId);
     io.to(quizId).emit("leaderboard_update", { results: allResults });
+    io.to(quizId).emit("participant_list_update", {
+      participants: allResults.map((p) => ({
+        ...p.studentInfo,
+        status: p.status,
+        score: p.score,
+        answers: p.answers,
+      })),
+      count: allResults.length,
+    });
   });
 
   socket.on("disconnect", async () => {

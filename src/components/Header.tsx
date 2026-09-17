@@ -1,5 +1,7 @@
-import React from "react";
+import React, { useState } from "react";
+import { motion } from "motion/react";
 import { useQuizSocket } from "../context/SocketContext";
+import { soundEffects } from "../utils/soundEffects";
 import {
   Trophy,
   Wifi,
@@ -7,9 +9,12 @@ import {
   LogOut,
   Shield,
   User,
+  Users,
   Clock,
   Sparkles,
   BookOpen,
+  Volume2,
+  VolumeX,
 } from "lucide-react";
 
 interface HeaderProps {
@@ -17,8 +22,27 @@ interface HeaderProps {
 }
 
 export const Header: React.FC<HeaderProps> = ({ onOpenQuizManager }) => {
-  const { isConnected, quizId, isHost, studentData, quizState, leaveQuizSession } =
-    useQuizSocket();
+  const {
+    isConnected,
+    quizId,
+    isHost,
+    studentData,
+    quizState,
+    leaveQuizSession,
+    participants,
+  } = useQuizSocket();
+  const [soundEnabled, setSoundEnabled] = useState(() => soundEffects.isEnabled());
+
+  const handleToggleSound = () => {
+    const next = soundEffects.toggle();
+    setSoundEnabled(next);
+  };
+
+  // Compute live current player count from socket-synced participants roster
+  const playerCount = Math.max(
+    participants.length,
+    quizState !== "join" && !isHost ? 1 : 0
+  );
 
   return (
     <header
@@ -80,6 +104,51 @@ export const Header: React.FC<HeaderProps> = ({ onOpenQuizManager }) => {
             </div>
           )}
 
+          {/* Dynamic Current Players Count Indicator */}
+          <div
+            id="current-players-indicator"
+            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium border transition-all ${
+              quizId && quizState !== "join"
+                ? "bg-indigo-50/90 text-indigo-800 border-indigo-200/90 shadow-2xs"
+                : "hidden sm:flex bg-slate-50 text-slate-500 border-slate-200"
+            }`}
+            title={
+              quizId && quizState !== "join"
+                ? `${playerCount} ${playerCount === 1 ? "player" : "players"} connected in real-time to quiz room ${quizId}`
+                : "Dynamic player count updates in real-time upon joining a quiz session"
+            }
+          >
+            {quizId && quizState !== "join" ? (
+              <>
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+                </span>
+                <Users className="w-3.5 h-3.5 text-indigo-600" />
+                <div className="flex items-center gap-1 font-sans">
+                  <span className="hidden lg:inline text-slate-500 text-[11px]">Players:</span>
+                  <motion.span
+                    key={playerCount}
+                    initial={{ scale: 0.75, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ duration: 0.2 }}
+                    className="font-extrabold text-indigo-950 font-mono text-xs"
+                  >
+                    {playerCount}
+                  </motion.span>
+                </div>
+                <span className="hidden md:inline lg:hidden text-indigo-700/80 text-[11px] font-medium">
+                  {playerCount === 1 ? "Player" : "Players"}
+                </span>
+              </>
+            ) : (
+              <>
+                <Users className="w-3.5 h-3.5 text-slate-400" />
+                <span className="text-slate-500 text-[11px]">0 Players</span>
+              </>
+            )}
+          </div>
+
           {/* Host / Student Badge */}
           {quizId && (
             <div
@@ -102,6 +171,29 @@ export const Header: React.FC<HeaderProps> = ({ onOpenQuizManager }) => {
               )}
             </div>
           )}
+
+          {/* Audio Sound Effects Toggle */}
+          <button
+            type="button"
+            id="header-audio-toggle-btn"
+            onClick={handleToggleSound}
+            className={`p-1.5 rounded-lg border text-xs font-semibold transition-colors cursor-pointer ${
+              soundEnabled
+                ? "border-indigo-200 bg-indigo-50 text-indigo-700 hover:bg-indigo-100"
+                : "border-slate-200 bg-slate-50 text-slate-400 hover:text-slate-600 hover:bg-slate-100"
+            }`}
+            title={
+              soundEnabled
+                ? "Sound Effects Active (5s Countdown Ticks, Correct/Incorrect Audio). Click to Mute."
+                : "Sound Muted. Click to Enable."
+            }
+          >
+            {soundEnabled ? (
+              <Volume2 className="w-3.5 h-3.5" />
+            ) : (
+              <VolumeX className="w-3.5 h-3.5" />
+            )}
+          </button>
 
           {/* Quiz Bank Modal Trigger for Host */}
           {onOpenQuizManager && (

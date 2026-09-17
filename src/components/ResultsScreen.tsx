@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import confetti from "canvas-confetti";
 import { useQuizSocket } from "../context/SocketContext";
+import { soundEffects } from "../utils/soundEffects";
 import {
   Trophy,
   Medal,
@@ -16,6 +17,11 @@ import {
   ChevronUp,
   RefreshCw,
   ExternalLink,
+  Volume2,
+  Shield,
+  GraduationCap,
+  BarChart3,
+  Users,
 } from "lucide-react";
 
 export const ResultsScreen: React.FC = () => {
@@ -33,6 +39,26 @@ export const ResultsScreen: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [showQuestionReview, setShowQuestionReview] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+
+  // Host class statistics
+  const hostStats = useMemo(() => {
+    if (!leaderboard || leaderboard.length === 0) {
+      return { count: 0, avgScore: "0.0", avgPct: 0, topScore: 0, perfectCount: 0 };
+    }
+    const count = leaderboard.length;
+    const totalScores = leaderboard.reduce((acc, curr) => acc + (curr.score || 0), 0);
+    const totalPercentages = leaderboard.reduce((acc, curr) => acc + (curr.percentage || 0), 0);
+    const topScore = Math.max(...leaderboard.map((l) => l.score || 0));
+    const perfectCount = leaderboard.filter((l) => l.percentage === 100).length;
+
+    return {
+      count,
+      avgScore: (totalScores / count).toFixed(1),
+      avgPct: Math.round(totalPercentages / count),
+      topScore,
+      perfectCount,
+    };
+  }, [leaderboard]);
 
   // Trigger celebration confetti
   useEffect(() => {
@@ -109,67 +135,154 @@ export const ResultsScreen: React.FC = () => {
 
   return (
     <div id="results-screen" className="max-w-4xl mx-auto py-8 px-4 space-y-8">
-      {/* Header Banner */}
-      <div className="text-center space-y-2">
-        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 text-amber-800 border border-amber-200 text-xs font-bold uppercase tracking-wider">
-          <Trophy className="w-3.5 h-3.5 text-amber-600" />
-          <span>Official Marathon Leaderboard</span>
+      {/* Role-Specific Header Banner */}
+      <div
+        className={`rounded-3xl p-6 sm:p-8 text-white shadow-lg flex flex-col sm:flex-row sm:items-center justify-between gap-6 ${
+          isHost
+            ? "bg-gradient-to-r from-purple-900 via-indigo-950 to-slate-900 shadow-purple-950/20 border border-purple-800/40"
+            : "bg-gradient-to-r from-indigo-900 via-indigo-800 to-slate-900 shadow-indigo-950/20 border border-indigo-800/40"
+        }`}
+      >
+        <div className="space-y-1.5">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-white/10 backdrop-blur border border-white/20">
+            {isHost ? (
+              <>
+                <Shield className="w-3.5 h-3.5 text-purple-300" />
+                <span className="text-purple-200">Host Command Dashboard</span>
+              </>
+            ) : (
+              <>
+                <GraduationCap className="w-3.5 h-3.5 text-indigo-300" />
+                <span className="text-indigo-200">Participant Performance Portal</span>
+              </>
+            )}
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
+            {isHost ? "Class Evaluation & Gradebook" : "Quiz Results & Personal Scorecard"}
+          </h1>
+          <p className="text-xs text-slate-300 max-w-xl">
+            {isHost
+              ? `Room ${quizId} • Session complete. Analyze aggregate class metrics, download the full gradebook, or inspect individual participant accuracy below.`
+              : `Room ${quizId} • Congratulations on completing the marathon! Review your official standing, breakdown of questions, and leaderboard placement.`}
+          </p>
         </div>
-        <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">
-          Quiz Results & Standings
-        </h1>
-        <p className="text-xs sm:text-sm text-slate-500">
-          Room: <span className="font-mono font-semibold text-slate-700">{quizId}</span> • Live evaluation completed
-        </p>
+
+        {/* Action Button */}
+        <div className="flex items-center gap-3 shrink-0">
+          {isHost ? (
+            <button
+              type="button"
+              onClick={handleExportCSV}
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs sm:text-sm font-bold shadow-sm transition-all cursor-pointer"
+            >
+              <Download className="w-4 h-4" />
+              <span>Download Gradebook CSV</span>
+            </button>
+          ) : (
+            myRecord && (
+              <div className="bg-white/10 backdrop-blur rounded-2xl px-5 py-3 text-center border border-white/15">
+                <div className="text-[10px] uppercase tracking-wider text-indigo-200 font-bold">
+                  Final Rank
+                </div>
+                <div className="text-3xl font-black text-amber-300">#{myRecord.rank}</div>
+              </div>
+            )
+          )}
+        </div>
       </div>
 
-      {/* Student Personal Performance Summary Card (if not host) */}
+      {/* Host Aggregate Analytics Grid (Visible only to Host) */}
+      {isHost && (
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <div className="bg-white rounded-2xl border border-slate-200/90 shadow-sm p-5 text-center">
+            <div className="w-8 h-8 mx-auto rounded-xl bg-purple-50 text-purple-700 flex items-center justify-center mb-2">
+              <Users className="w-4 h-4" />
+            </div>
+            <div className="text-2xl font-black text-slate-900 font-mono">{hostStats.count}</div>
+            <div className="text-xs font-bold text-slate-500 uppercase tracking-wider mt-0.5">
+              Total Graded
+            </div>
+          </div>
+
+          <div className="bg-white rounded-2xl border border-slate-200/90 shadow-sm p-5 text-center">
+            <div className="w-8 h-8 mx-auto rounded-xl bg-indigo-50 text-indigo-700 flex items-center justify-center mb-2">
+              <BarChart3 className="w-4 h-4" />
+            </div>
+            <div className="text-2xl font-black text-indigo-600 font-mono">{hostStats.avgScore}</div>
+            <div className="text-xs font-bold text-slate-500 uppercase tracking-wider mt-0.5">
+              Class Avg Score
+            </div>
+          </div>
+
+          <div className="bg-white rounded-2xl border border-slate-200/90 shadow-sm p-5 text-center">
+            <div className="w-8 h-8 mx-auto rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center mb-2">
+              <Trophy className="w-4 h-4" />
+            </div>
+            <div className="text-2xl font-black text-emerald-600 font-mono">{hostStats.topScore}</div>
+            <div className="text-xs font-bold text-slate-500 uppercase tracking-wider mt-0.5">
+              Highest Score
+            </div>
+          </div>
+
+          <div className="bg-white rounded-2xl border border-slate-200/90 shadow-sm p-5 text-center">
+            <div className="w-8 h-8 mx-auto rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center mb-2">
+              <Award className="w-4 h-4" />
+            </div>
+            <div className="text-2xl font-black text-amber-600 font-mono">{hostStats.avgPct}%</div>
+            <div className="text-xs font-bold text-slate-500 uppercase tracking-wider mt-0.5">
+              Class Accuracy
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Student Personal Performance Summary Card (Visible only to Student) */}
       {!isHost && myRecord && (
         <div
           id="student-scorecard"
-          className="bg-gradient-to-r from-indigo-900 to-indigo-800 rounded-3xl p-6 sm:p-8 text-white shadow-lg shadow-indigo-200"
+          className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/90 shadow-sm"
         >
           <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
             <div className="space-y-1 text-center sm:text-left">
-              <span className="text-xs font-bold uppercase tracking-wider text-indigo-300">
-                Your Performance
+              <span className="text-xs font-bold uppercase tracking-wider text-indigo-600">
+                Participant Examination Summary
               </span>
-              <h2 className="text-2xl font-extrabold tracking-tight">
+              <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight">
                 {studentData?.name || "Student"}
               </h2>
-              <p className="text-xs font-mono text-indigo-200">{studentData?.usn}</p>
+              <p className="text-xs font-mono text-slate-500">
+                USN: {studentData?.usn} {studentData?.department ? `• ${studentData.department}` : ""}
+              </p>
             </div>
 
-            <div className="flex items-center gap-4 sm:gap-6">
+            <div className="flex items-center gap-3 sm:gap-4">
               {/* Rank */}
-              <div className="bg-white/10 backdrop-blur rounded-2xl px-5 py-3 text-center border border-white/15">
-                <div className="text-xs uppercase tracking-wider text-indigo-200 font-semibold">
-                  Rank
+              <div className="bg-amber-50 rounded-2xl px-5 py-3 text-center border border-amber-200">
+                <div className="text-[10px] uppercase tracking-wider text-amber-800 font-bold">
+                  Class Rank
                 </div>
-                <div className="text-3xl font-black text-amber-300">
+                <div className="text-2xl sm:text-3xl font-black text-amber-600">
                   #{myRecord.rank}
                 </div>
               </div>
 
               {/* Score */}
-              <div className="bg-white/10 backdrop-blur rounded-2xl px-5 py-3 text-center border border-white/15">
-                <div className="text-xs uppercase tracking-wider text-indigo-200 font-semibold">
-                  Score
+              <div className="bg-indigo-50 rounded-2xl px-5 py-3 text-center border border-indigo-200">
+                <div className="text-[10px] uppercase tracking-wider text-indigo-800 font-bold">
+                  Total Score
                 </div>
-                <div className="text-3xl font-black text-white">
+                <div className="text-2xl sm:text-3xl font-black text-indigo-600">
                   {myRecord.score}
-                  <span className="text-sm font-normal text-indigo-200">
-                    /{myRecord.total}
-                  </span>
+                  <span className="text-xs font-normal text-indigo-500">/{myRecord.total}</span>
                 </div>
               </div>
 
               {/* Percentage */}
-              <div className="bg-white/10 backdrop-blur rounded-2xl px-5 py-3 text-center border border-white/15">
-                <div className="text-xs uppercase tracking-wider text-indigo-200 font-semibold">
+              <div className="bg-emerald-50 rounded-2xl px-5 py-3 text-center border border-emerald-200">
+                <div className="text-[10px] uppercase tracking-wider text-emerald-800 font-bold">
                   Accuracy
                 </div>
-                <div className="text-3xl font-black text-emerald-300">
+                <div className="text-2xl sm:text-3xl font-black text-emerald-600">
                   {myRecord.percentage}%
                 </div>
               </div>
@@ -399,7 +512,7 @@ export const ResultsScreen: React.FC = () => {
                         {q.question_text}
                       </div>
                       {!isHost && (
-                        <div>
+                        <div className="flex items-center gap-1.5 shrink-0">
                           {isCorrect ? (
                             <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">
                               <CheckCircle2 className="w-3.5 h-3.5" /> Correct
@@ -409,6 +522,18 @@ export const ResultsScreen: React.FC = () => {
                               <XCircle className="w-3.5 h-3.5" /> Incorrect
                             </span>
                           )}
+                          <button
+                            type="button"
+                            onClick={() =>
+                              isCorrect
+                                ? soundEffects.playCorrectSound()
+                                : soundEffects.playIncorrectSound()
+                            }
+                            className="p-1 rounded-md text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
+                            title={isCorrect ? "Play correct chime" : "Play incorrect tone"}
+                          >
+                            <Volume2 className="w-3.5 h-3.5" />
+                          </button>
                         </div>
                       )}
                     </div>

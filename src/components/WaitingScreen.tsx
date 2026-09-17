@@ -13,6 +13,9 @@ import {
   AlertCircle,
   HelpCircle,
   Hash,
+  GraduationCap,
+  Radio,
+  BookOpen,
 } from "lucide-react";
 
 export const WaitingScreen: React.FC = () => {
@@ -79,41 +82,75 @@ export const WaitingScreen: React.FC = () => {
   };
 
   return (
-    <div id="waiting-screen" className="max-w-4xl mx-auto py-8 px-4">
-      {/* Lobby Banner Card */}
-      <div className="bg-white rounded-2xl border border-slate-200/90 shadow-sm p-6 sm:p-8 mb-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-100">
+    <div id="waiting-screen" className="max-w-4xl mx-auto py-8 px-4 space-y-6">
+      {/* Role-Specific Header Banner */}
+      <div
+        className={`rounded-2xl p-5 sm:p-6 text-white shadow-sm border flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${
+          isHost
+            ? "bg-gradient-to-r from-purple-900 to-indigo-900 border-purple-800"
+            : "bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-900 border-indigo-800"
+        }`}
+      >
+        <div>
+          <div className="flex items-center gap-2 mb-1.5">
+            <span
+              className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider border ${
+                isHost
+                  ? "bg-purple-500/30 text-purple-200 border-purple-400/40"
+                  : "bg-blue-500/30 text-blue-200 border-blue-400/40"
+              }`}
+            >
+              {isHost ? <Shield className="w-3.5 h-3.5" /> : <GraduationCap className="w-3.5 h-3.5" />}
+              {isHost ? "Host Broadcast Center" : "Participant Holding Station"}
+            </span>
+            <span className="text-xs text-slate-300 font-mono">Room: {quizId}</span>
+          </div>
+          <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight">
+            {isHost ? "Lobby Session Master Controls" : "Awaiting Host Quiz Broadcast"}
+          </h1>
+          <p className="text-xs text-slate-300 mt-1 max-w-xl">
+            {isHost
+              ? "All joined participants are held here. When ready, click 'Start Quiz Sequence' to broadcast questions simultaneously."
+              : `Welcome, ${studentData?.name || "Participant"}! You are checked in with USN ${studentData?.usn || "N/A"}. The exam will begin when the host broadcasts Question 1.`}
+          </p>
+        </div>
+
+        {/* Room Code Quick Box */}
+        <div className="bg-white/10 backdrop-blur rounded-xl p-3 border border-white/20 flex items-center justify-between sm:justify-start gap-4">
           <div>
-            <div className="flex items-center gap-2 mb-1">
-              <span className="px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider bg-emerald-100 text-emerald-800 border border-emerald-200 flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
-                Lobby Active
-              </span>
-              <span className="text-xs text-slate-500 font-mono">Quiz Code:</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <h2 className="text-2xl sm:text-3xl font-mono font-extrabold text-slate-900">
-                {quizId}
-              </h2>
-              <button
-                type="button"
-                onClick={handleCopyCode}
-                className="p-1.5 rounded-lg border border-slate-200 text-slate-500 hover:text-slate-900 hover:bg-slate-50 transition-colors"
-                title="Copy Quiz Code"
-              >
-                {copied ? (
-                  <Check className="w-4 h-4 text-emerald-600" />
-                ) : (
-                  <Copy className="w-4 h-4" />
-                )}
-              </button>
+            <div className="text-[10px] uppercase font-bold text-slate-300">Room Code</div>
+            <div className="text-lg font-mono font-black text-white">{quizId}</div>
+          </div>
+          <button
+            type="button"
+            onClick={handleCopyCode}
+            className="p-2 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer"
+            title="Copy Code"
+          >
+            {copied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+          </button>
+        </div>
+      </div>
+
+      {/* Main Waiting Action Card */}
+      <div className="bg-white rounded-2xl border border-slate-200/90 shadow-sm p-6 sm:p-8">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-100">
+          <div className="flex items-center gap-3">
+            <span className="w-3 h-3 rounded-full bg-emerald-500 animate-ping" />
+            <div>
+              <div className="text-xs font-bold uppercase tracking-wider text-emerald-700">
+                Lobby Active & Synced
+              </div>
+              <div className="text-sm font-semibold text-slate-700">
+                Socket.IO Real-Time Session Channel
+              </div>
             </div>
           </div>
 
-          {/* Quick Metrics */}
+          {/* Connected Count Indicator */}
           <div className="flex items-center gap-3">
             <div className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-center">
-              <div className="text-2xl font-black text-indigo-600">
+              <div className="text-2xl font-black text-indigo-600 font-mono">
                 {participants.length}
               </div>
               <div className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
@@ -135,7 +172,7 @@ export const WaitingScreen: React.FC = () => {
                     Host Broadcast Controls
                   </h3>
                   <p className="text-xs text-purple-700 mt-0.5">
-                    Clicking "Start Quiz" broadcasts the questions to all joined devices simultaneously.
+                    Clicking "Start Quiz Sequence" broadcasts Question 1 to all joined student screens concurrently.
                   </p>
                 </div>
 
@@ -183,8 +220,8 @@ export const WaitingScreen: React.FC = () => {
                   <span className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-indigo-600 border-2 border-white animate-ping" />
                 </div>
                 <div>
-                  <div className="font-bold text-slate-900 text-sm sm:text-base">
-                    Waiting for the Host to start...
+                  <div className="font-bold text-slate-900 text-sm sm:text-base flex items-center gap-2">
+                    <span>Awaiting Host broadcast signal...</span>
                   </div>
                   <p className="text-xs text-slate-500">
                     Stay on this screen. As soon as the host triggers the quiz, Question 1 will launch automatically.

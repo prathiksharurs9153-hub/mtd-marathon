@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { AnimatePresence, motion } from "motion/react";
 import { SocketProvider, useQuizSocket } from "./context/SocketContext";
 import { Header } from "./components/Header";
 import { JoinScreen } from "./components/JoinScreen";
@@ -17,15 +18,28 @@ const QuizAppContent: React.FC = () => {
       {/* Navigation Header */}
       <Header onOpenQuizManager={() => setIsQuizManagerOpen(true)} />
 
-      {/* Main Dynamic Viewport */}
-      <main className="flex-1 flex flex-col justify-center px-2 sm:px-4">
-        {quizState === "join" && (
-          <JoinScreen onOpenQuizManager={() => setIsQuizManagerOpen(true)} />
-        )}
-        {quizState === "waiting" && <WaitingScreen />}
-        {quizState === "in_quiz" && <QuizScreen />}
-        {quizState === "completed_transition" && <CompletedTransition />}
-        {quizState === "results" && <ResultsScreen />}
+      {/* Main Dynamic Viewport with Route Transition */}
+      <main className="flex-1 flex flex-col justify-center px-2 sm:px-4 overflow-x-hidden">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={quizState}
+            initial={{ opacity: 0, y: 14 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -14 }}
+            transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+            className="w-full"
+          >
+            {quizState === "join" && (
+              <JoinScreen onOpenQuizManager={() => setIsQuizManagerOpen(true)} />
+            )}
+            {quizState === "waiting" && <WaitingScreen />}
+            {quizState === "in_quiz" && (
+              <QuizScreen onOpenQuizManager={() => setIsQuizManagerOpen(true)} />
+            )}
+            {quizState === "completed_transition" && <CompletedTransition />}
+            {quizState === "results" && <ResultsScreen />}
+          </motion.div>
+        </AnimatePresence>
       </main>
 
       {/* Question Bank / Quiz Config Modal */}
