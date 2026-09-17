@@ -1,0 +1,6 @@
+{
+  "name": "MTD Marathon — Real-Time Quiz Portal",
+  "description": "Real-time host-driven quiz portal with synchronized question countdowns, live scoring, and leaderboard.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

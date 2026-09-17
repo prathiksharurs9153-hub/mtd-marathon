@@ -1,0 +1,87 @@
+{
+  "MTD-2026": [
+    {
+      "question_id": 1,
+      "question_text": "Which of the following represents a float data type in Python?",
+      "options": ["10", "10.5", "\"10.5\"", "[10.5]"],
+      "correct_answer": "10.5",
+      "timer_seconds": 15,
+      "type": "radio",
+      "explanation": "In Python, 10.5 has a decimal point and is interpreted as a float. 10 is an int, \"10.5\" is a str, and [10.5] is a list."
+    },
+    {
+      "question_id": 2,
+      "question_text": "Which of the following is a valid string declaration in Python?",
+      "options": ["name = John", "name = 'John'", "name = (John)", "name = {John}"],
+      "correct_answer": "name = 'John'",
+      "timer_seconds": 15,
+      "type": "radio",
+      "explanation": "Strings in Python must be enclosed in single or double quotes, like 'John' or \"John\"."
+    },
+    {
+      "question_id": 3,
+      "question_text": "Which built-in Python data structures are mutable? (Select all that apply)",
+      "options": ["list", "tuple", "dict", "str"],
+      "correct_answer": "list,dict",
+      "timer_seconds": 18,
+      "type": "checkbox",
+      "explanation": "Lists and dictionaries in Python are mutable (can be changed in place). Tuples and strings are immutable."
+    },
+    {
+      "question_id": 4,
+      "question_text": "What does the expression `bool([])` evaluate to in Python?",
+      "options": ["True", "False", "None", "TypeError"],
+      "correct_answer": "False",
+      "timer_seconds": 12,
+      "type": "radio",
+      "explanation": "Empty collections, such as empty lists `[]`, tuples `()`, or strings `\"\"`, evaluate to `False` in boolean contexts."
+    },
+    {
+      "question_id": 5,
+      "question_text": "What is the output of `type(lambda x: x)`?",
+      "options": ["<class 'function'>", "<class 'lambda'>", "<class 'method'>", "<class 'generator'>"],
+      "correct_answer": "<class 'function'>",
+      "timer_seconds": 15,
+      "type": "radio",
+      "explanation": "In Python, lambda expressions construct standard function objects whose type is `<class 'function'>`."
+    }
+  ],
+  "ADV-PYTHON-2026": [
+    {
+      "question_id": 1,
+      "question_text": "What is a decorator in Python?",
+      "options": ["A design pattern", "A function modifier", "A built-in loop", "A data type"],
+      "correct_answer": "A function modifier",
+      "timer_seconds": 20,
+      "type": "radio",
+      "explanation": "A decorator is a callable that takes another function or method as an argument and extends or modifies its behavior without altering its source code."
+    },
+    {
+      "question_id": 2,
+      "question_text": "Which methods are required to make an object a context manager in Python? (Select all that apply)",
+      "options": ["__enter__", "__exit__", "__iter__", "__call__"],
+      "correct_answer": "__enter__,__exit__",
+      "timer_seconds": 18,
+      "type": "checkbox",
+      "explanation": "The Context Manager protocol in Python is implemented by defining both the `__enter__()` and `__exit__()` dunder methods."
+    },
+    {
+      "question_id": 3,
+      "question_text": "What keyword is used in a function to create a generator object instead of returning directly?",
+      "options": ["generate", "yield", "produce", "await"],
+      "correct_answer": "yield",
+      "timer_seconds": 15,
+      "type": "radio",
+      "explanation": "When a function contains the `yield` statement, calling it returns an iterator generator object rather than running immediately to completion."
+    },
+    {
+      "question_id": 4,
+      "question_text": "What is the Global Interpreter Lock (GIL) in CPython primarily designed to protect?",
+      "options": ["Network sockets", "Memory management & reference counting", "File descriptors", "GPU compute streams"],
+      "correct_answer": "Memory management & reference counting",
+      "timer_seconds": 20,
+      "type": "radio",
+      "explanation": "The CPython GIL prevents multiple native threads from executing Python bytecodes simultaneously to protect CPython's reference-counting memory management from race conditions."
+    }
+  ]
+}
